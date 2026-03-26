@@ -11,9 +11,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   await connectDB()
   const { slug } = await params
 
-  const area = await Area.findOne({ slug }).lean<{ _id: unknown; name: string; slug: string; color: string; icon: string }>()
-  if (!area) return NextResponse.json({ error: 'Area not found' }, { status: 404 })
+  const areaDoc = await Area.findOne({ slug }).lean()
+  if (!areaDoc) return NextResponse.json({ error: 'Area not found' }, { status: 404 })
 
+  const area = areaDoc as { _id: unknown; name: string; slug: string; color: string; icon: string }
   const areaId = area._id
 
   const [subjects, subareas, topics, subtopics] = await Promise.all([
