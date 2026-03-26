@@ -4,9 +4,10 @@ import { Subtopic } from '@/lib/models/Subtopic'
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   await connectDB()
+  const { id } = await params
   const body = await req.json()
 
   const update: Record<string, unknown> = {}
@@ -19,7 +20,7 @@ export async function PATCH(
   }
 
   const doc = await Subtopic.findByIdAndUpdate(
-    params.id,
+    id,
     update,
     { new: true },
   ).lean()

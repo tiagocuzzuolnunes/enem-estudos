@@ -16,8 +16,9 @@ const iconMap: Record<string, string> = {
   flask: '🔬', globe: '🌍', book: '📖', calculator: '🧮', pencil: '✏️',
 }
 
-export default async function AreaPage({ params }: { params: { slug: string } }) {
-  const area = await getArea(params.slug)
+export default async function AreaPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const area = await getArea(slug)
   if (!area) notFound()
 
   return (

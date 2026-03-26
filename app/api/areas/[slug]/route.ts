@@ -7,10 +7,11 @@ import { Topic } from '@/lib/models/Topic'
 import { Subtopic } from '@/lib/models/Subtopic'
 import type { AreaDetailUI, SubjectUI, SubareaUI, TopicUI, SubtopicUI } from '@/types'
 
-export async function GET(_req: Request, { params }: { params: { slug: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   await connectDB()
+  const { slug } = await params
 
-  const area = await Area.findOne({ slug: params.slug }).lean()
+  const area = await Area.findOne({ slug }).lean<{ _id: unknown; name: string; slug: string; color: string; icon: string }>()
   if (!area) return NextResponse.json({ error: 'Area not found' }, { status: 404 })
 
   const areaId = area._id
