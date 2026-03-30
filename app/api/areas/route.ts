@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Area } from '@/lib/models/Area'
 import { Subtopic } from '@/lib/models/Subtopic'
-import type { AreaCardUI } from '@/types'
+import type { IArea, AreaCardUI } from '@/types'
 
 export async function GET() {
   await connectDB()
 
   const [areas, stats] = await Promise.all([
-    Area.find().sort({ name: 1 }).lean(),
+    Area.find().sort({ name: 1 }).lean() as unknown as IArea[],
     Subtopic.aggregate([
       {
         $group: {

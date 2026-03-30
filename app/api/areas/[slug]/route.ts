@@ -5,23 +5,22 @@ import { Subject } from '@/lib/models/Subject'
 import { Subarea } from '@/lib/models/Subarea'
 import { Topic } from '@/lib/models/Topic'
 import { Subtopic } from '@/lib/models/Subtopic'
-import type { AreaDetailUI, SubjectUI, SubareaUI, TopicUI, SubtopicUI } from '@/types'
+import type { IArea, ISubject, ISubarea, ITopic, ISubtopic, AreaDetailUI, SubjectUI, SubareaUI, TopicUI, SubtopicUI } from '@/types'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   await connectDB()
   const { slug } = await params
 
-  const areaDoc = await Area.findOne({ slug }).lean()
-  if (!areaDoc || Array.isArray(areaDoc)) return NextResponse.json({ error: 'Area not found' }, { status: 404 })
+  const area = await Area.findOne({ slug }).lean() as unknown as IArea | null
+  if (!area) return NextResponse.json({ error: 'Area not found' }, { status: 404 })
 
-  const area = areaDoc as { _id: { toString(): string }; name: string; slug: string; color: string; icon: string }
   const areaId = area._id
 
   const [subjects, subareas, topics, subtopics] = await Promise.all([
-    Subject.find({ areaId }).sort({ order: 1 }).lean(),
-    Subarea.find({ areaId }).sort({ order: 1 }).lean(),
-    Topic.find({ areaId }).sort({ order: 1 }).lean(),
-    Subtopic.find({ areaId }).sort({ order: 1 }).lean(),
+    Subject.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubject[],
+    Subarea.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubarea[],
+    Topic.find({ areaId }).sort({ order: 1 }).lean() as unknown as ITopic[],
+    Subtopic.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubtopic[],
   ])
 
   // Build maps
