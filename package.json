@@ -24,6 +24,7 @@
     "postcss": "^8",
     "autoprefixer": "^10",
     "tsx": "^4",
+    "dotenv": "^16",
     "eslint": "^8",
     "eslint-config-next": "^15.2.4"
   }
