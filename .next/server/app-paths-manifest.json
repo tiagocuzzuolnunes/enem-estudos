@@ -1,10 +1,3 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/areas/[slug]/route": "app/api/areas/[slug]/route.js",
-  "/api/areas/route": "app/api/areas/route.js",
-  "/api/settings/route": "app/api/settings/route.js",
-  "/api/subtopics/[id]/route": "app/api/subtopics/[id]/route.js",
-  "/area/[slug]/page": "app/area/[slug]/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js"
+  "/api/areas/route": "app/api/areas/route.js"
 }

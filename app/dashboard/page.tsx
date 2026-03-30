@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import DashboardCard from '@/components/DashboardCard'
 import DaysRemaining from '@/components/DaysRemaining'
 import { connectDB } from '@/lib/mongodb'
