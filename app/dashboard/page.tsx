@@ -1,34 +1,54 @@
 export const dynamic = 'force-dynamic'
 
-import DashboardCard from '@/components/DashboardCard'
 import DaysRemaining from '@/components/DaysRemaining'
+import DashboardGrid from '@/components/DashboardGrid'
 import { connectDB } from '@/lib/mongodb'
 import { Area } from '@/lib/models/Area'
+import { Subject } from '@/lib/models/Subject'
 import { Subtopic } from '@/lib/models/Subtopic'
-import { Settings } from '@/lib/models/Settings'
-import type { AreaCardUI, ISettings } from '@/types'
+import type { AreaCardUI, SubjectCardUI } from '@/types'
 
 export default async function DashboardPage() {
   await connectDB()
 
-  const [areas, stats, settings] = await Promise.all([
+  const [areas, subjects, areaStats, subjectStats] = await Promise.all([
     Area.find().sort({ name: 1 }).lean() as unknown as { _id: { toString(): string }; name: string; slug: string; color: string; icon: string }[],
+    Subject.find().sort({ order: 1 }).lean() as unknown as { _id: { toString(): string }; areaId: { toString(): string }; name: string; order: number }[],
     Subtopic.aggregate([
-      { $group: { _id: '$areaId', total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } },
+      { $group: { _id: '$areaId',    total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } },
     ]),
-    Settings.findOne().lean() as unknown as ISettings | null,
+    Subtopic.aggregate([
+      { $group: { _id: '$subjectId', total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } },
+    ]),
   ])
 
-  const statsMap = new Map(stats.map((s: { _id: { toString(): string }; total: number; completed: number }) => [s._id.toString(), s]))
+  const areaMap    = new Map(areas.map((a) => [a._id.toString(), a]))
+  const areaStats_ = new Map(areaStats.map((s: { _id: { toString(): string }; total: number; completed: number }) => [s._id.toString(), s]))
+  const subjStats_ = new Map(subjectStats.map((s: { _id: { toString(): string }; total: number; completed: number }) => [s._id.toString(), s]))
 
   const areaCards: AreaCardUI[] = areas.map((a) => {
-    const s = statsMap.get(a._id.toString())
+    const s = areaStats_.get(a._id.toString())
     return {
       _id:                a._id.toString(),
       name:               a.name,
       slug:               a.slug,
       color:              a.color,
       icon:               a.icon,
+      totalSubtopics:     s?.total     ?? 0,
+      completedSubtopics: s?.completed ?? 0,
+    }
+  })
+
+  const subjectCards: SubjectCardUI[] = subjects.map((subj) => {
+    const area = areaMap.get(subj.areaId.toString())
+    const s    = subjStats_.get(subj._id.toString())
+    return {
+      _id:                subj._id.toString(),
+      name:               subj.name,
+      areaSlug:           area?.slug  ?? '',
+      areaColor:          area?.color ?? '#6b7280',
+      areaIcon:           area?.icon  ?? '',
+      areaName:           area?.name  ?? '',
       totalSubtopics:     s?.total     ?? 0,
       completedSubtopics: s?.completed ?? 0,
     }
@@ -48,7 +68,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {settings && <DaysRemaining enemDate={new Date(settings.enemDate).toISOString()} />}
+        <DaysRemaining />
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-center">
           <p className="text-sm text-gray-500 mb-1">Progresso Geral</p>
           <p className="text-4xl font-bold text-gray-900 mb-3">{overallPct}<span className="text-xl font-medium text-gray-400">%</span></p>
@@ -62,21 +82,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-base font-semibold text-gray-700 mb-3">Por Área</h2>
-        {areaCards.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
-            <p className="text-gray-500 text-sm">Nenhum conteúdo encontrado.</p>
-            <p className="text-gray-400 text-xs mt-1">Execute <code className="bg-gray-100 px-1 rounded">npm run seed</code> para popular o banco de dados.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {areaCards.map((area) => (
-              <DashboardCard key={area._id} area={area} />
-            ))}
-          </div>
-        )}
-      </div>
+      <DashboardGrid areaCards={areaCards} subjectCards={subjectCards} />
     </div>
   )
 }

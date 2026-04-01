@@ -50,238 +50,248 @@ const CONTENT: Record<string, {
     }>
   }>
 }> = {
-  'ciencias-natureza': {
-    subjects: [
+  "linguagens": {
+    "subjects": [
       {
-        name: 'Física',
-        subareas: [
+        "name": "Língua Portuguesa e Literatura",
+        "subareas": [
           {
-            name: 'Mecânica',
-            topics: [
-              { name: 'Cinemática', subtopics: ['Movimento Uniforme', 'Movimento Uniformemente Variado', 'Queda Livre', 'Lançamento de Projéteis'] },
-              { name: 'Dinâmica',   subtopics: ['Leis de Newton', 'Força de Atrito', 'Força Normal', 'Plano Inclinado'] },
-            ],
+            "name": "Gêneros e Tipologia",
+            "topics": [
+              { "name": "Gêneros Textuais", "subtopics": ["Crônica", "Conto", "Editorial", "Notícia", "Artigo de Opinião"] },
+              { "name": "Gêneros Digitais", "subtopics": ["Meme", "Post de rede social", "E-mail", "Blog", "Podcast"] },
+              { "name": "Tipologia Textual", "subtopics": ["Narrativo", "Descritivo", "Dissertativo-argumentativo", "Injuntivo", "Expositivo"] }
+            ]
           },
           {
-            name: 'Física Ondulatória',
-            topics: [
-              { name: 'Ondas',     subtopics: ['Reflexão', 'Refração', 'Difração', 'Interferência'] },
-              { name: 'Acústica',  subtopics: ['Características do Som', 'Efeito Doppler', 'Ressonância'] },
-              { name: 'Óptica',    subtopics: ['Reflexão da Luz', 'Refração da Luz', 'Lentes', 'Espelhos'] },
-            ],
+            "name": "Gramática e Linguística",
+            "topics": [
+              { "name": "Coesão e Coerência", "subtopics": ["Conectivos", "Anáforas", "Catáforas", "Operadores argumentativos"] },
+              { "name": "Variação Linguística", "subtopics": ["Norma culta", "Coloquialismo", "Regionalismos", "Gírias"] },
+              { "name": "Funções e Figuras", "subtopics": ["Funções da Linguagem", "Metáfora e Comparação", "Antítese e Paradoxo", "Ironia", "Hipérbole e Eufemismo", "Metonímia e Personificação"] },
+              { "name": "Morfossintaxe", "subtopics": ["Tempos e modos verbais", "Concordância nominal e verbal", "Regência nominal e verbal", "Crase"] }
+            ]
           },
           {
-            name: 'Eletromagnetismo',
-            topics: [
-              { name: 'Eletrostática',  subtopics: ['Carga Elétrica', 'Lei de Coulomb', 'Campo Elétrico', 'Potencial Elétrico'] },
-              { name: 'Eletrodinâmica', subtopics: ['Corrente Elétrica', 'Resistência', 'Lei de Ohm', 'Circuitos Elétricos'] },
-            ],
-          },
-        ],
-      },
-      {
-        name: 'Química',
-        subareas: [
-          {
-            name: 'Química Geral',
-            topics: [
-              { name: 'Estrutura Atômica', subtopics: ['Modelos Atômicos', 'Tabela Periódica', 'Ligações Químicas'] },
-              { name: 'Funções Inorgânicas', subtopics: ['Ácidos', 'Bases', 'Sais', 'Óxidos'] },
-            ],
+            "name": "Teoria e Escolas Literárias",
+            "topics": [
+              { "name": "Fundamentos", "subtopics": ["Gênero Lírico", "Gênero Épico", "Gênero Dramático", "Elementos da Narrativa"] },
+              { "name": "Cronologia", "subtopics": ["Quinhentismo", "Barroco", "Arcadismo", "Romantismo", "Realismo e Naturalismo", "Parnasianismo e Simbolismo", "Pré-Modernismo", "Modernismo (1ª, 2ª e 3ª Geração)", "Literatura Contemporânea"] }
+            ]
           },
           {
-            name: 'Físico-Química',
-            topics: [
-              { name: 'Termoquímica',  subtopics: ['Entalpia', 'Lei de Hess', 'Energia de Ligação'] },
-              { name: 'Equilíbrio',    subtopics: ['Equilíbrio Químico', 'Le Chatelier', 'Ka e Kb', 'pH e pOH'] },
-              { name: 'Eletroquímica', subtopics: ['Pilhas e Baterias', 'Eletrólise', 'Potencial de Redução'] },
-            ],
-          },
-          {
-            name: 'Química Orgânica',
-            topics: [
-              { name: 'Fundamentos', subtopics: ['Hibridização do Carbono', 'Isomeria', 'Nomenclatura IUPAC'] },
-              { name: 'Reações',     subtopics: ['Adição', 'Substituição', 'Eliminação', 'Oxidação'] },
-            ],
-          },
-        ],
-      },
-      {
-        name: 'Biologia',
-        subareas: [
-          {
-            name: 'Biologia Celular',
-            topics: [
-              { name: 'Citologia', subtopics: ['Membrana Plasmática', 'Organelas Celulares', 'Divisão Celular', 'Metabolismo Celular'] },
-            ],
-          },
-          {
-            name: 'Genética',
-            topics: [
-              { name: 'Genética Clássica',   subtopics: ['Leis de Mendel', 'Dominância Incompleta', 'Codominância', 'Ligação Gênica'] },
-              { name: 'Genética Molecular', subtopics: ['DNA e RNA', 'Replicação', 'Transcrição', 'Tradução'] },
-            ],
-          },
-          {
-            name: 'Ecologia',
-            topics: [
-              { name: 'Ecossistemas', subtopics: ['Cadeias Alimentares', 'Ciclos Biogeoquímicos', 'Biomas Brasileiros', 'Sucessão Ecológica'] },
-            ],
-          },
-        ],
-      },
-    ],
+            "name": "Artes e Educação Física",
+            "topics": [
+              { "name": "Artes Visuais", "subtopics": ["Linguagem visual", "História da Arte (Clássica ao Moderno)"] },
+              { "name": "Manifestações", "subtopics": ["Teatro", "Música", "Dança"] },
+              { "name": "Corpo e Saúde", "subtopics": ["Anatomia e Fisiologia do exercício", "Saúde e Exercício", "História dos esportes e Lutas", "Danças e Jogos populares"] }
+            ]
+          }
+        ]
+      }
+    ]
   },
-  'ciencias-humanas': {
-    subjects: [
+  "matematica": {
+    "subjects": [
       {
-        name: 'História',
-        subareas: [
+        "name": "Matemática",
+        "subareas": [
           {
-            name: 'História do Brasil',
-            topics: [
-              { name: 'Brasil Colônia',   subtopics: ['Período Pré-Colonial', 'Colonização Portuguesa', 'Ciclos Econômicos', 'Sociedade Colonial'] },
-              { name: 'Brasil Império',   subtopics: ['Independência', 'Primeiro Reinado', 'Período Regencial', 'Segundo Reinado'] },
-              { name: 'Brasil República', subtopics: ['República Velha', 'Era Vargas', 'Ditadura Militar', 'Redemocratização'] },
-            ],
+            "name": "Aritmética e Razão",
+            "topics": [
+              { "name": "Matemática Básica", "subtopics": ["Operações básicas", "Divisibilidade e Primos", "MMC e MDC", "Frações e Decimais", "Potenciação e Radiciação"] },
+              { "name": "Proporcionalidade", "subtopics": ["Razão e Proporção", "Regra de três simples e composta", "Porcentagem"] },
+              { "name": "Finanças", "subtopics": ["Juros simples", "Juros compostos"] }
+            ]
           },
           {
-            name: 'História Geral',
-            topics: [
-              { name: 'Guerras Mundiais', subtopics: ['Causas da 1ª GM', '1ª Guerra Mundial', 'Causas da 2ª GM', '2ª Guerra Mundial', 'Holocausto'] },
-              { name: 'Guerra Fria',      subtopics: ['Bipolaridade', 'Corrida Armamentista', 'Conflitos Regionais', 'Fim da URSS'] },
-            ],
-          },
-        ],
-      },
-      {
-        name: 'Geografia',
-        subareas: [
-          {
-            name: 'Geografia Física',
-            topics: [
-              { name: 'Climatologia',  subtopics: ['Climas do Brasil', 'Climas do Mundo', 'El Niño e La Niña', 'Mudanças Climáticas'] },
-              { name: 'Geomorfologia', subtopics: ['Relevo Brasileiro', 'Processos Erosivos', 'Bacias Hidrográficas'] },
-            ],
+            "name": "Álgebra e Sequências",
+            "topics": [
+              { "name": "Equações e Inequações", "subtopics": ["1º Grau", "2º Grau", "Sistemas"] },
+              { "name": "Funções", "subtopics": ["Função Afim", "Função Quadrática", "Função Exponencial", "Logaritmos e Função Logarítmica"] },
+              { "name": "Sequências", "subtopics": ["Progressão Aritmética (PA)", "Progressão Geométrica (PG)"] }
+            ]
           },
           {
-            name: 'Geografia Humana',
-            topics: [
-              { name: 'Urbanização', subtopics: ['Urbanização Brasileira', 'Urbanização Mundial', 'Problemas Urbanos', 'Metropolização'] },
-              { name: 'Geopolítica', subtopics: ['Globalização', 'Blocos Econômicos', 'Conflitos Geopolíticos'] },
-            ],
+            "name": "Geometria e Trigonometria",
+            "topics": [
+              { "name": "Geometria Plana", "subtopics": ["Teorema de Pitágoras", "Áreas e Perímetros", "Semelhança de triângulos", "Teorema de Tales"] },
+              { "name": "Geometria Espacial", "subtopics": ["Prismas", "Pirâmides", "Cilindros", "Cones", "Esferas"] },
+              { "name": "Trigonometria", "subtopics": ["Razões no triângulo retângulo", "Ciclo trigonométrico", "Funções Seno e Cosseno"] },
+              { "name": "Análise", "subtopics": ["Ponto e Reta", "Circunferência no plano"] }
+            ]
           },
-        ],
-      },
-    ],
+          {
+            "name": "Estatística e Probabilidade",
+            "topics": [
+              { "name": "Análise Combinatória", "subtopics": ["PFC", "Arranjo", "Combinação", "Permutação"] },
+              { "name": "Probabilidade", "subtopics": ["Conceitos básicos", "Espaço amostral", "Probabilidade condicional", "Eventos independentes"] },
+              { "name": "Estatística", "subtopics": ["Média (Simples/Ponderada)", "Moda e Mediana", "Desvio padrão e Variância"] }
+            ]
+          }
+        ]
+      }
+    ]
   },
-  'linguagens': {
-    subjects: [
+  "ciencias-natureza": {
+    "subjects": [
       {
-        name: 'Língua Portuguesa',
-        subareas: [
+        "name": "Física",
+        "subareas": [
           {
-            name: 'Gramática',
-            topics: [
-              { name: 'Morfologia', subtopics: ['Classes de Palavras', 'Formação de Palavras', 'Flexão Nominal', 'Flexão Verbal'] },
-              { name: 'Sintaxe',    subtopics: ['Análise Sintática', 'Concordância Nominal', 'Concordância Verbal', 'Regência'] },
-            ],
+            "name": "Mecânica",
+            "topics": [
+              { "name": "Cinemática", "subtopics": ["Velocidade média e escalar", "MU e MRUV", "Aceleração", "Movimento Circular", "Queda Livre e Lançamento"] },
+              { "name": "Dinâmica", "subtopics": ["Leis de Newton", "Força de Atrito", "Força Centrípeta", "Trabalho, Energia e Potência"] },
+              { "name": "Estática e Hidrostática", "subtopics": ["Torque e Equilíbrio", "Pressão e Densidade", "Empuxo e Pascal"] },
+              { "name": "Gravitação", "subtopics": ["Leis de Kepler", "Lei da Gravitação Universal"] }
+            ]
           },
           {
-            name: 'Interpretação e Produção',
-            topics: [
-              { name: 'Interpretação de Texto', subtopics: ['Texto Dissertativo', 'Texto Narrativo', 'Texto Poético', 'Texto Publicitário'] },
-              { name: 'Redação',                subtopics: ['Estrutura da Redação ENEM', 'Tese e Argumentação', 'Proposta de Intervenção', 'Coesão e Coerência'] },
-            ],
+            "name": "Termofísica e Ondulatória",
+            "topics": [
+              { "name": "Termologia", "subtopics": ["Calorimetria", "Calor específico e capacidade", "Dilatação térmica", "Gases Ideais", "Leis da Termodinâmica"] },
+              { "name": "Óptica", "subtopics": ["Reflexão e Refração", "Espelhos planos e esféricos", "Lentes e Visão humana"] },
+              { "name": "Ondulatória", "subtopics": ["Princípios Básicos", "Fenômenos (Reflexão, Refração, Difração)", "Interferência, Polarização, Doppler"] }
+            ]
           },
-        ],
+          {
+            "name": "Eletromagnetismo",
+            "topics": [
+              { "name": "Eletricidade", "subtopics": ["Carga elétrica e Lei de Coulomb", "Circuitos e Leis de Ohm", "Potência e Consumo"] },
+              { "name": "Magnetismo", "subtopics": ["Ímãs e Campo Magnético"] }
+            ]
+          }
+        ]
       },
       {
-        name: 'Literatura',
-        subareas: [
+        "name": "Química",
+        "subareas": [
           {
-            name: 'Literatura Brasileira',
-            topics: [
-              { name: 'Modernismo',               subtopics: ['Semana de Arte Moderna', 'Geração de 22', 'Segundo Modernismo', 'Terceiro Modernismo'] },
-              { name: 'Realismo e Naturalismo',   subtopics: ['Machado de Assis', 'Aluísio Azevedo', 'Características do Realismo'] },
-            ],
+            "name": "Química Geral e Físico-Química",
+            "topics": [
+              { "name": "Atomística", "subtopics": ["Modelos atômicos", "Tabela Periódica", "Ligações Químicas", "Polaridade e Forças Intermoleculares"] },
+              { "name": "Estequiometria", "subtopics": ["Mol e Massa Molar", "Cálculos simples", "Leis Ponderais e Rendimento"] },
+              { "name": "Soluções", "subtopics": ["Concentração e Solubilidade", "Propriedades Coligativas"] },
+              { "name": "Energia e Reações", "subtopics": ["Termoquímica (Hess)", "Cinética Química", "Equilíbrio Químico (pH e pOH)", "Eletroquímica (Pilhas e Eletrólise)"] }
+            ]
           },
-        ],
+          {
+            "name": "Química Orgânica e Ambiental",
+            "topics": [
+              { "name": "Compostos Orgânicos", "subtopics": ["Hidrocarbonetos", "Funções Oxigenadas", "Funções Nitrogenadas", "Isomeria", "Polímeros e Reações"] },
+              { "name": "Química Ambiental", "subtopics": ["Ciclos biogeoquímicos", "Poluição", "Tratamento de Água e Esgoto"] }
+            ]
+          }
+        ]
       },
       {
-        name: 'Língua Inglesa',
-        subareas: [
+        "name": "Biologia",
+        "subareas": [
           {
-            name: 'Interpretação',
-            topics: [
-              { name: 'Reading Comprehension', subtopics: ['Main Idea', 'Specific Information', 'Vocabulary in Context', 'Inferencing'] },
-            ],
+            "name": "Vida e Célula",
+            "topics": [
+              { "name": "Citologia", "subtopics": ["Organelas", "Membrana e Transportes", "Metabolismo Energético", "Divisão Celular"] },
+              { "name": "Genética e Evolução", "subtopics": ["Leis de Mendel", "DNA, RNA e Proteínas", "Biotecnologia", "Teorias de Lamarck e Darwin", "Neodarwinismo"] }
+            ]
           },
-        ],
-      },
-    ],
+          {
+            "name": "Ecologia e Diversidade",
+            "topics": [
+              { "name": "Ecossistemas", "subtopics": ["Cadeias e Teias", "Ciclos Biogeoquímicos", "Biomas Brasileiros", "Impactos Ambientais"] },
+              { "name": "Reinos", "subtopics": ["Vírus e Bactérias", "Protozoários e Fungos", "Botânica", "Zoologia"] }
+            ]
+          },
+          {
+            "name": "Saúde Humana",
+            "topics": [
+              { "name": "Fisiologia", "subtopics": ["Digestório e Respiratório", "Circulatório e Excretor", "Endócrino e Nervoso"] },
+              { "name": "Programas de Saúde", "subtopics": ["Doenças bacterianas e virais", "Parasitoses comuns"] }
+            ]
+          }
+        ]
+      }
+    ]
   },
-  'matematica': {
-    subjects: [
+  "ciencias-humanas": {
+    "subjects": [
       {
-        name: 'Matemática',
-        subareas: [
+        "name": "História",
+        "subareas": [
           {
-            name: 'Álgebra',
-            topics: [
-              { name: 'Funções',  subtopics: ['Função Afim', 'Função Quadrática', 'Função Exponencial', 'Função Logarítmica'] },
-              { name: 'Equações', subtopics: ['Equações do 1º Grau', 'Equações do 2º Grau', 'Sistemas de Equações', 'Inequações'] },
-            ],
+            "name": "História do Brasil",
+            "topics": [
+              { "name": "Colônia", "subtopics": ["Ciclos do açúcar e ouro", "Economia colonial", "Escravidão e Resistência"] },
+              { "name": "Império e República", "subtopics": ["Independência", "Primeiro e Segundo Reinado", "República Velha", "Era Vargas", "Ditadura Militar", "Redemocratização"] }
+            ]
           },
           {
-            name: 'Geometria',
-            topics: [
-              { name: 'Geometria Plana',    subtopics: ['Triângulos', 'Quadriláteros', 'Círculo e Circunferência', 'Polígonos'] },
-              { name: 'Geometria Espacial', subtopics: ['Prismas', 'Pirâmides', 'Cilindro, Cone e Esfera', 'Geometria Analítica'] },
-            ],
-          },
-          {
-            name: 'Estatística e Probabilidade',
-            topics: [
-              { name: 'Estatística',   subtopics: ['Média, Mediana e Moda', 'Desvio Padrão', 'Representações Gráficas'] },
-              { name: 'Probabilidade', subtopics: ['Espaço Amostral', 'Eventos', 'Probabilidade Condicional', 'Binomial'] },
-              { name: 'Combinatória',  subtopics: ['Princípio Multiplicativo', 'Permutação', 'Combinação', 'Arranjo'] },
-            ],
-          },
-          {
-            name: 'Trigonometria',
-            topics: [
-              { name: 'Trigonometria no Triângulo',        subtopics: ['Seno, Cosseno e Tangente', 'Lei dos Senos', 'Lei dos Cossenos'] },
-              { name: 'Trigonometria na Circunferência',   subtopics: ['Ciclo Trigonométrico', 'Funções Trigonométricas', 'Equações Trigonométricas'] },
-            ],
-          },
-        ],
+            "name": "História Geral",
+            "topics": [
+              { "name": "Revoluções e Século XIX", "subtopics": ["Revolução Industrial", "Revolução Russa", "Imperialismo e Neocolonialismo"] },
+              { "name": "Conflitos Mundiais", "subtopics": ["1ª e 2ª Guerra Mundial", "Guerra Fria", "Regimes Totalitários", "Revoluções Chinesa e Cubana"] }
+            ]
+          }
+        ]
       },
-    ],
-  },
-  'redacao': {
-    subjects: [
       {
-        name: 'Redação ENEM',
-        subareas: [
+        "name": "Geografia",
+        "subareas": [
           {
-            name: 'Estrutura',
-            topics: [
-              { name: 'Texto Dissertativo-Argumentativo', subtopics: ['Introdução', 'Desenvolvimento', 'Conclusão com Proposta de Intervenção'] },
-              { name: 'Competências ENEM',                subtopics: ['Competência 1: Domínio da Língua', 'Competência 2: Compreensão da Proposta', 'Competência 3: Argumentação', 'Competência 4: Mecanismos Linguísticos', 'Competência 5: Proposta de Intervenção'] },
-            ],
+            "name": "Geografia Física e Cartografia",
+            "topics": [
+              { "name": "Cartografia", "subtopics": ["Projeções e Escalas", "Fusos e Coordenadas"] },
+              { "name": "Geofísica", "subtopics": ["Estrutura da Terra", "Tectonismo", "Relevo e Solo", "Clima e Vegetação (Brasil/Mundo)"] }
+            ]
           },
           {
-            name: 'Prática',
-            topics: [
-              { name: 'Operadores Argumentativos', subtopics: ['Conectivos de Adição', 'Conectivos de Oposição', 'Conectivos de Conclusão', 'Conectivos de Explicação'] },
-              { name: 'Repertório Cultural',       subtopics: ['Dados Estatísticos', 'Citações e Referências', 'Fatos Históricos', 'Legislação'] },
-            ],
-          },
-        ],
+            "name": "Geografia Humana e Econômica",
+            "topics": [
+              { "name": "Economia e Produção", "subtopics": ["Fordismo/Toyotismo", "Industrialização", "Agronegócio", "Globalização"] },
+              { "name": "Urbana e Geopolítica", "subtopics": ["Urbanização", "Segregação e Problemas Urbanos", "ONU, OTAN e Conflitos atuais"] },
+              { "name": "Meio Ambiente", "subtopics": ["Efeito Estufa", "Sustentabilidade", "Conferências Ambientais"] }
+            ]
+          }
+        ]
       },
-    ],
+      {
+        "name": "Sociologia e Filosofia",
+        "subareas": [
+          {
+            "name": "Sociedade e Política",
+            "topics": [
+              { "name": "Cidadania", "subtopics": ["Direitos Civis, Políticos e Sociais", "Constituições Brasileiras"] },
+              { "name": "Cultura", "subtopics": ["Cultura Material e Imaterial", "Diversidade e Patrimônio"] },
+              { "name": "Movimentos Sociais", "subtopics": ["Lutas indígenas e negras", "Feminismo e Lutas operárias"] }
+            ]
+          }
+        ]
+      }
+    ]
   },
+  "redacao": {
+    "subjects": [
+      {
+        "name": "Redação ENEM",
+        "subareas": [
+          {
+            "name": "Teoria e Estrutura",
+            "topics": [
+              { "name": "Fundamentos", "subtopics": ["Análise do Edital", "Critérios de Correção", "Estrutura da Introdução e Tese"] },
+              { "name": "Desenvolvimento", "subtopics": ["Estratégias argumentativas", "Repertório Sociocultural"] }
+            ]
+          },
+          {
+            "name": "Técnica e Prática",
+            "topics": [
+              { "name": "Escrita", "subtopics": ["Coesão Textual", "Operadores Argumentativos"] },
+              { "name": "Intervenção", "subtopics": ["Os 5 elementos da Proposta"] }
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }
 
 async function seed() {

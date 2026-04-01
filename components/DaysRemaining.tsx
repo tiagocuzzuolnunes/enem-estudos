@@ -1,27 +1,31 @@
-interface Props {
-  enemDate: string
-}
+const ENEM_DAY1 = new Date('2026-11-08T00:00:00')
+const ENEM_DAY2 = new Date('2026-11-15T00:00:00')
 
-export default function DaysRemaining({ enemDate }: Props) {
+function daysUntil(target: Date) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const target = new Date(enemDate)
-  target.setHours(0, 0, 0, 0)
-  const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+}
 
-  if (diff < 0) {
-    return (
-      <div className="bg-gray-100 rounded-2xl p-4 text-center">
-        <p className="text-sm text-gray-500">O ENEM já aconteceu</p>
-      </div>
-    )
-  }
+export default function DaysRemaining() {
+  const day1 = daysUntil(ENEM_DAY1)
+  const day2 = daysUntil(ENEM_DAY2)
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white text-center shadow-md">
-      <p className="text-sm font-medium opacity-80 mb-1">Faltam</p>
-      <p className="text-5xl font-bold tracking-tight">{diff}</p>
-      <p className="text-sm font-medium opacity-80 mt-1">dias para o ENEM</p>
+    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white shadow-md">
+      <p className="text-xs font-medium opacity-70 uppercase tracking-wide mb-3">ENEM 2026</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white/15 rounded-xl py-3 text-center">
+          <p className="text-4xl font-bold">{day1 > 0 ? day1 : '—'}</p>
+          <p className="text-xs opacity-80 mt-1">dias — 1º Dia</p>
+          <p className="text-xs opacity-60">8 nov</p>
+        </div>
+        <div className="bg-white/15 rounded-xl py-3 text-center">
+          <p className="text-4xl font-bold">{day2 > 0 ? day2 : '—'}</p>
+          <p className="text-xs opacity-80 mt-1">dias — 2º Dia</p>
+          <p className="text-xs opacity-60">15 nov</p>
+        </div>
+      </div>
     </div>
   )
 }

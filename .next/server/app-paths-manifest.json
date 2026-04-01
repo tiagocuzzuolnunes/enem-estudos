@@ -1,3 +1,4 @@
 {
-  "/api/areas/route": "app/api/areas/route.js"
+  "/area/[slug]/page": "app/area/[slug]/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

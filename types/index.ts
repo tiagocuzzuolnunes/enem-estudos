@@ -116,3 +116,14 @@ export interface AreaCardUI {
   totalSubtopics: number
   completedSubtopics: number
 }
+
+export interface SubjectCardUI {
+  _id: string
+  name: string
+  areaSlug: string
+  areaColor: string
+  areaIcon: string
+  areaName: string
+  totalSubtopics: number
+  completedSubtopics: number
+}
