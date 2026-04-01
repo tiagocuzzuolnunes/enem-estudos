@@ -15,9 +15,10 @@ interface Props {
 export default function AreaContent({ area }: Props) {
   const [statusFilter, setStatusFilter]     = useState<Filter>('all')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
-  const [openSubjects, setOpenSubjects]     = useState<Set<string>>(new Set())
-  const [openSubareas, setOpenSubareas]     = useState<Set<string>>(new Set())
-  const [openTopics, setOpenTopics]         = useState<Set<string>>(new Set())
+  const [openSubtopicId, setOpenSubtopicId] = useState<string | null>(null)
+  const [openSubjects, setOpenSubjects]     = useState<Set<string>>(new Set(area.subjects.map(s => s._id)))
+  const [openSubareas, setOpenSubareas]     = useState<Set<string>>(new Set(area.subjects.flatMap(s => s.subareas.map(sa => sa._id))))
+  const [openTopics, setOpenTopics]         = useState<Set<string>>(new Set(area.subjects.flatMap(s => s.subareas.flatMap(sa => sa.topics.map(t => t._id)))))
 
   function toggleSet(set: Set<string>, id: string): Set<string> {
     const next = new Set(set)
@@ -161,7 +162,13 @@ export default function AreaContent({ area }: Props) {
                                         <p className="text-xs text-gray-400 py-1">Nenhum subtópico para este filtro.</p>
                                       ) : (
                                         filtered.map((st) => (
-                                          <SubtopicItem key={st._id} subtopic={st} areaColor={area.color} />
+                                          <SubtopicItem
+                                            key={st._id}
+                                            subtopic={st}
+                                            areaColor={area.color}
+                                            linksOpen={openSubtopicId === st._id}
+                                            onToggleLinks={() => setOpenSubtopicId(prev => prev === st._id ? null : st._id)}
+                                          />
                                         ))
                                       )}
                                     </div>

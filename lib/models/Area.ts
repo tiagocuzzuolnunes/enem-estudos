@@ -6,6 +6,7 @@ const AreaSchema = new Schema<IArea>({
   slug:      { type: String, required: true, unique: true },
   color:     { type: String, required: true },
   icon:      { type: String, required: true },
+  order:     { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 })
 

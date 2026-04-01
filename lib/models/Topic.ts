@@ -10,5 +10,7 @@ const TopicSchema = new Schema<ITopic>({
 })
 
 TopicSchema.index({ subareaId: 1, order: 1 })
+TopicSchema.index({ areaId: 1, order: 1 })
+TopicSchema.index({ subjectId: 1, order: 1 })
 
 export const Topic = models.Topic || model<ITopic>('Topic', TopicSchema)

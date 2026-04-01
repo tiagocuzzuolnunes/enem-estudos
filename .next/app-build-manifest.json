@@ -20,6 +20,36 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/area/[slug]/page.js"
+    ],
+    "/api/study-log/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/study-log/route.js"
+    ],
+    "/api/weekly-schedule/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/weekly-schedule/route.js"
+    ],
+    "/api/topics/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/topics/route.js"
+    ],
+    "/api/study-log/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/study-log/[id]/route.js"
+    ],
+    "/api/subtopics/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/subtopics/[id]/route.js"
+    ],
+    "/api/weekly-schedule/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/weekly-schedule/[id]/route.js"
     ]
   }
 }

@@ -20,7 +20,10 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
 
   await connectDB()
 
-  const area = await Area.findOne({ slug }).lean() as unknown as IArea | null
+  const [area, allAreas] = await Promise.all([
+    Area.findOne({ slug }).lean() as unknown as IArea | null,
+    Area.find().sort({ order: 1 }).lean() as unknown as IArea[],
+  ])
   if (!area) notFound()
 
   const areaId = area._id
@@ -29,7 +32,7 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
     Subject.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubject[],
     Subarea.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubarea[],
     Topic.find({ areaId }).sort({ order: 1 }).lean() as unknown as ITopic[],
-    Subtopic.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubtopic[],
+    Subtopic.find({ areaId }).sort({ order: 1 }).select('-__v').lean() as unknown as ISubtopic[],
   ])
 
   const subareasBySubject = new Map<string, ISubarea[]>()
@@ -71,6 +74,7 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
           order: st.order,
           videoLinks: st.videoLinks as { title: string; url: string }[],
           exerciseLinks: st.exerciseLinks as { title: string; url: string }[],
+          additionalLinks: (st.additionalLinks ?? []) as { title: string; url: string }[],
           priority: st.priority as 'high' | 'medium' | 'low',
           completed: st.completed,
           completedAt: st.completedAt?.toISOString() ?? null,
@@ -92,19 +96,24 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-6 space-y-5">
-      <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-3">
-          ← Voltar ao Dashboard
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{iconMap[area.icon] ?? '📚'}</span>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{area.name}</h1>
-            <p className="text-sm text-gray-500">
-              {areaData.subjects.length} disciplina{areaData.subjects.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
+      {/* area tabs */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        {allAreas.map(a => {
+          const active = a.slug === slug
+          return (
+            <Link
+              key={a.slug}
+              href={`/area/${a.slug}`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0"
+              style={active
+                ? { backgroundColor: a.color, color: '#fff' }
+                : { backgroundColor: '#f3f4f6', color: '#6b7280' }}
+            >
+              <span>{iconMap[a.icon] ?? '📚'}</span>
+              {a.name}
+            </Link>
+          )
+        })}
       </div>
 
       <AreaContent area={areaData} />

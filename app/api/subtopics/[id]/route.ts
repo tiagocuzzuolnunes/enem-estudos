@@ -18,6 +18,9 @@ export async function PATCH(
   if (['high', 'medium', 'low'].includes(body.priority)) {
     update.priority = body.priority
   }
+  if (Array.isArray(body.videoLinks))      update.videoLinks      = body.videoLinks
+  if (Array.isArray(body.exerciseLinks))   update.exerciseLinks   = body.exerciseLinks
+  if (Array.isArray(body.additionalLinks)) update.additionalLinks = body.additionalLinks
 
   const doc = await Subtopic.findByIdAndUpdate(
     id,

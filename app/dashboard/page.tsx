@@ -6,56 +6,49 @@ import { connectDB } from '@/lib/mongodb'
 import { Area } from '@/lib/models/Area'
 import { Subject } from '@/lib/models/Subject'
 import { Subtopic } from '@/lib/models/Subtopic'
-import type { AreaCardUI, SubjectCardUI } from '@/types'
+import type { SubjectCardUI } from '@/types'
 
 export default async function DashboardPage() {
   await connectDB()
 
-  const [areas, subjects, areaStats, subjectStats] = await Promise.all([
-    Area.find().sort({ name: 1 }).lean() as unknown as { _id: { toString(): string }; name: string; slug: string; color: string; icon: string }[],
+  const [areas, subjects, [stats]] = await Promise.all([
+    Area.find().sort({ order: 1 }).lean() as unknown as { _id: { toString(): string }; name: string; slug: string; color: string; icon: string; order: number }[],
     Subject.find().sort({ order: 1 }).lean() as unknown as { _id: { toString(): string }; areaId: { toString(): string }; name: string; order: number }[],
-    Subtopic.aggregate([
-      { $group: { _id: '$areaId',    total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } },
-    ]),
-    Subtopic.aggregate([
-      { $group: { _id: '$subjectId', total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } },
+    Subtopic.aggregate<{ byArea: { _id: string; total: number; completed: number }[]; bySubject: { _id: string; total: number; completed: number }[] }>([
+      { $facet: {
+        byArea:    [{ $group: { _id: '$areaId',    total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } }],
+        bySubject: [{ $group: { _id: '$subjectId', total: { $sum: 1 }, completed: { $sum: { $cond: ['$completed', 1, 0] } } } }],
+      } },
     ]),
   ])
+  const areaStats    = stats.byArea
+  const subjectStats = stats.bySubject
 
   const areaMap    = new Map(areas.map((a) => [a._id.toString(), a]))
-  const areaStats_ = new Map(areaStats.map((s: { _id: { toString(): string }; total: number; completed: number }) => [s._id.toString(), s]))
-  const subjStats_ = new Map(subjectStats.map((s: { _id: { toString(): string }; total: number; completed: number }) => [s._id.toString(), s]))
+  const subjStats_ = new Map(subjectStats.map(s => [s._id.toString(), s]))
 
-  const areaCards: AreaCardUI[] = areas.map((a) => {
-    const s = areaStats_.get(a._id.toString())
-    return {
-      _id:                a._id.toString(),
-      name:               a.name,
-      slug:               a.slug,
-      color:              a.color,
-      icon:               a.icon,
-      totalSubtopics:     s?.total     ?? 0,
-      completedSubtopics: s?.completed ?? 0,
-    }
-  })
+  const subjectCards: SubjectCardUI[] = subjects
+    .map((subj) => {
+      const area = areaMap.get(subj.areaId.toString())
+      const s    = subjStats_.get(subj._id.toString())
+      return {
+        _id:                subj._id.toString(),
+        name:               subj.name,
+        areaSlug:           area?.slug  ?? '',
+        areaColor:          area?.color ?? '#6b7280',
+        areaIcon:           area?.icon  ?? '',
+        areaName:           area?.name  ?? '',
+        areaOrder:          area?.order  ?? 99,
+        subjectOrder:       subj.order,
+        totalSubtopics:     s?.total     ?? 0,
+        completedSubtopics: s?.completed ?? 0,
+      }
+    })
+    .sort((a, b) => a.areaOrder - b.areaOrder || a.subjectOrder - b.subjectOrder)
+    .map(({ areaOrder: _a, subjectOrder: _b, ...rest }) => rest) as SubjectCardUI[]
 
-  const subjectCards: SubjectCardUI[] = subjects.map((subj) => {
-    const area = areaMap.get(subj.areaId.toString())
-    const s    = subjStats_.get(subj._id.toString())
-    return {
-      _id:                subj._id.toString(),
-      name:               subj.name,
-      areaSlug:           area?.slug  ?? '',
-      areaColor:          area?.color ?? '#6b7280',
-      areaIcon:           area?.icon  ?? '',
-      areaName:           area?.name  ?? '',
-      totalSubtopics:     s?.total     ?? 0,
-      completedSubtopics: s?.completed ?? 0,
-    }
-  })
-
-  const totalSubtopics     = areaCards.reduce((sum, a) => sum + a.totalSubtopics, 0)
-  const completedSubtopics = areaCards.reduce((sum, a) => sum + a.completedSubtopics, 0)
+  const totalSubtopics     = areaStats.reduce((sum, a) => sum + a.total, 0)
+  const completedSubtopics = areaStats.reduce((sum, a) => sum + a.completed, 0)
   const overallPct = totalSubtopics > 0
     ? Math.round((completedSubtopics / totalSubtopics) * 100)
     : 0
@@ -82,7 +75,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <DashboardGrid areaCards={areaCards} subjectCards={subjectCards} />
+      <DashboardGrid subjectCards={subjectCards} />
     </div>
   )
 }

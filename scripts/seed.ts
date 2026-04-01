@@ -6,7 +6,7 @@ dotenv.config({ path: '.env.local' })
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/enem-estudos'
 
 // ---- inline schemas for seeding ----
-const AreaSchema = new mongoose.Schema({ name: String, slug: String, color: String, icon: String, createdAt: { type: Date, default: Date.now } })
+const AreaSchema = new mongoose.Schema({ name: String, slug: String, color: String, icon: String, order: Number, createdAt: { type: Date, default: Date.now } })
 const SubjectSchema = new mongoose.Schema({ areaId: mongoose.Types.ObjectId, name: String, order: Number })
 const SubareaSchema = new mongoose.Schema({ subjectId: mongoose.Types.ObjectId, areaId: mongoose.Types.ObjectId, name: String, order: Number })
 const TopicSchema = new mongoose.Schema({ subareaId: mongoose.Types.ObjectId, subjectId: mongoose.Types.ObjectId, areaId: mongoose.Types.ObjectId, name: String, order: Number })
@@ -31,11 +31,11 @@ const Settings = mongoose.model('Settings', SettingsSchema)
 
 // ---- seed data ----
 const AREAS = [
-  { name: 'Ciências da Natureza', slug: 'ciencias-natureza', color: '#10b981', icon: 'flask' },
-  { name: 'Ciências Humanas',     slug: 'ciencias-humanas',  color: '#8b5cf6', icon: 'globe' },
-  { name: 'Linguagens e Códigos', slug: 'linguagens',        color: '#3b82f6', icon: 'book'  },
-  { name: 'Matemática',           slug: 'matematica',        color: '#f59e0b', icon: 'calculator' },
-  { name: 'Redação',              slug: 'redacao',           color: '#ef4444', icon: 'pencil' },
+  { name: 'Redação',              slug: 'redacao',           color: '#ef4444', icon: 'pencil',     order: 0 },
+  { name: 'Linguagens e Códigos', slug: 'linguagens',        color: '#3b82f6', icon: 'book',       order: 1 },
+  { name: 'Ciências Humanas',     slug: 'ciencias-humanas',  color: '#8b5cf6', icon: 'globe',      order: 2 },
+  { name: 'Matemática',           slug: 'matematica',        color: '#f59e0b', icon: 'calculator', order: 3 },
+  { name: 'Ciências da Natureza', slug: 'ciencias-natureza', color: '#10b981', icon: 'flask',      order: 4 },
 ]
 
 const CONTENT: Record<string, {

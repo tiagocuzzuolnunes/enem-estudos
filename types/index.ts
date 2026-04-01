@@ -6,6 +6,7 @@ export interface IArea {
   slug: string
   color: string
   icon: string
+  order: number
   createdAt: Date
 }
 
@@ -50,6 +51,7 @@ export interface ISubtopic {
   order: number
   videoLinks: ILink[]
   exerciseLinks: ILink[]
+  additionalLinks: ILink[]
   priority: Priority
   completed: boolean
   completedAt: Date | null
@@ -70,6 +72,7 @@ export interface SubtopicUI {
   order: number
   videoLinks: ILink[]
   exerciseLinks: ILink[]
+  additionalLinks: ILink[]
   priority: Priority
   completed: boolean
   completedAt: string | null

@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     Subject.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubject[],
     Subarea.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubarea[],
     Topic.find({ areaId }).sort({ order: 1 }).lean() as unknown as ITopic[],
-    Subtopic.find({ areaId }).sort({ order: 1 }).lean() as unknown as ISubtopic[],
+    Subtopic.find({ areaId }).sort({ order: 1 }).select('-__v').lean() as unknown as ISubtopic[],
   ])
 
   // Build maps
@@ -63,6 +63,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
           order: st.order,
           videoLinks: st.videoLinks as { title: string; url: string }[],
           exerciseLinks: st.exerciseLinks as { title: string; url: string }[],
+          additionalLinks: (st.additionalLinks ?? []) as { title: string; url: string }[],
           priority: st.priority as 'high' | 'medium' | 'low',
           completed: st.completed,
           completedAt: st.completedAt?.toISOString() ?? null,

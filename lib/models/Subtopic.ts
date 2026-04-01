@@ -11,8 +11,9 @@ const SubtopicSchema = new Schema<ISubtopic>(
     areaId:     { type: Schema.Types.ObjectId, ref: 'Area',    required: true },
     name:       { type: String, required: true },
     order:      { type: Number, default: 0 },
-    videoLinks:    { type: [LinkSchema], default: [] },
-    exerciseLinks: { type: [LinkSchema], default: [] },
+    videoLinks:      { type: [LinkSchema], default: [] },
+    exerciseLinks:   { type: [LinkSchema], default: [] },
+    additionalLinks: { type: [LinkSchema], default: [] },
     priority:   { type: String, enum: ['high', 'medium', 'low'], default: 'medium' },
     completed:  { type: Boolean, default: false },
     completedAt:{ type: Date, default: null },
@@ -20,7 +21,8 @@ const SubtopicSchema = new Schema<ISubtopic>(
   { timestamps: true },
 )
 
-SubtopicSchema.index({ areaId: 1 })
+SubtopicSchema.index({ areaId: 1, order: 1 })
+SubtopicSchema.index({ subjectId: 1, order: 1 })
 SubtopicSchema.index({ topicId: 1, order: 1 })
 
 export const Subtopic = models.Subtopic || model<ISubtopic>('Subtopic', SubtopicSchema)
