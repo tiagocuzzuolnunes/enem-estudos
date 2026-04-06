@@ -16,40 +16,55 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/page.js"
     ],
-    "/area/[slug]/page": [
+    "/api/weekly-schedule/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/area/[slug]/page.js"
+      "static/chunks/app/api/weekly-schedule/route.js"
     ],
     "/api/study-log/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/study-log/route.js"
     ],
-    "/api/weekly-schedule/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/weekly-schedule/route.js"
-    ],
     "/api/topics/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/topics/route.js"
     ],
-    "/api/study-log/[id]/route": [
+    "/area/[slug]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/study-log/[id]/route.js"
+      "static/chunks/app/area/[slug]/page.js"
     ],
     "/api/subtopics/[id]/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/subtopics/[id]/route.js"
     ],
-    "/api/weekly-schedule/[id]/route": [
+    "/admin/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/weekly-schedule/[id]/route.js"
+      "static/chunks/app/admin/page.js"
+    ],
+    "/api/areas/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/areas/route.js"
+    ],
+    "/api/areas/[slug]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/areas/[slug]/route.js"
+    ],
+    "/api/admin/subtopics/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/subtopics/route.js"
+    ],
+    "/api/admin/subtopics/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/subtopics/[id]/route.js"
     ]
   }
 }

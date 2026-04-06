@@ -7,6 +7,9 @@ export default function Navbar() {
         <Link href="/dashboard" className="font-bold text-lg text-gray-900 tracking-tight">
           📚 ENEM Estudos
         </Link>
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
+          Gerenciar
+        </Link>
       </div>
     </nav>
   )

@@ -51,8 +51,19 @@ function hasTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEn
   const date  = new Date(dateStr + 'T12:00:00')
   const start = new Date(entry.startDate + 'T12:00:00')
   if (date < start) return false
-  const startIdx = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000)) * (entry.perDay ?? 1)
-  return startIdx < topics.length
+  const today = new Date(); today.setHours(12, 0, 0, 0)
+  const perDay = entry.perDay ?? 1
+  if (date >= today) {
+    // Future/today: carry-forward — only show if there are uncompleted topics for this session
+    const ref = start > today ? start : today
+    const futureOffset = Math.round((date.getTime() - ref.getTime()) / (7 * 24 * 3600 * 1000))
+    const uncompleted = topics.filter(t => !t.completed)
+    return futureOffset * perDay < uncompleted.length
+  } else {
+    // Past: position-based historical view
+    const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+    return weekOffset * perDay < topics.length
+  }
 }
 
 function getTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[], countOverride?: number): TopicEntry[] {
@@ -60,12 +71,25 @@ function getTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEn
   const date  = new Date(dateStr + 'T12:00:00')
   const start = new Date(entry.startDate + 'T12:00:00')
   if (date < start) return []
-  const perDay   = entry.perDay ?? 1
-  const count    = countOverride ?? perDay
-  const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
-  const startIdx = weekOffset * perDay
-  if (startIdx >= topics.length) return []  // all subtopics exhausted
-  return topics.slice(startIdx, startIdx + count)
+  const today = new Date(); today.setHours(12, 0, 0, 0)
+  const perDay = entry.perDay ?? 1
+  const count  = countOverride ?? perDay
+  if (date >= today) {
+    // Future/today: distribute remaining uncompleted topics across future sessions
+    // Missed sessions automatically carry forward to the next appointment
+    const ref = start > today ? start : today
+    const futureOffset = Math.round((date.getTime() - ref.getTime()) / (7 * 24 * 3600 * 1000))
+    const uncompleted = topics.filter(t => !t.completed)
+    const sliceStart = futureOffset * perDay
+    if (sliceStart >= uncompleted.length) return []
+    return uncompleted.slice(sliceStart, sliceStart + count)
+  } else {
+    // Past: original position-based behavior
+    const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+    const startIdx = weekOffset * perDay
+    if (startIdx >= topics.length) return []
+    return topics.slice(startIdx, startIdx + count)
+  }
 }
 
 interface PaceResult {
@@ -92,6 +116,20 @@ function computePace(subjectId: string, topics: TopicEntry[], schedule: Schedule
   const isBehind = weeksNeeded > availableWeeks
   const weeksShort = isBehind ? Math.ceil(weeksNeeded - availableWeeks) : 0
   return { weeksNeeded, weeksShort, remaining, total, isBehind }
+}
+
+function computeCompletionDate(subjectId: string, topics: TopicEntry[], schedule: ScheduleEntry[]): Date | null {
+  const entries = schedule.filter(e => e.subjectId === subjectId)
+  if (!entries.length || !topics.length) return null
+  const remaining = topics.filter(t => !t.completed).length
+  if (remaining === 0) return null // already done
+  const daysPerWeek = entries.length
+  const perDay = entries[0].perDay ?? 1
+  const weeklyRate = daysPerWeek * perDay
+  const weeksNeeded = Math.ceil(remaining / weeklyRate)
+  const d = new Date()
+  d.setDate(d.getDate() + weeksNeeded * 7)
+  return d
 }
 
 // ── component ──────────────────────────────────────────────────────────────
@@ -289,11 +327,20 @@ export default function StudyCalendar({ subjectCards }: Props) {
               const perDay     = entry.perDay ?? 1
               const count      = perDay + (extraCount[entry._id] ?? 0)
               const topics     = getTopicsForDate(entry, dateStr, allTopics, count)
-              const weekOffset = allTopics.length > 0
-                ? Math.round((new Date(dateStr + 'T12:00:00').getTime() - new Date(entry.startDate + 'T12:00:00').getTime()) / (7 * 24 * 3600 * 1000))
-                : 0
-              const startIdx   = weekOffset * perDay
-              const canAddMore = startIdx + count < allTopics.length
+              const todayD = new Date(); todayD.setHours(12, 0, 0, 0)
+              const dateD  = new Date(dateStr + 'T12:00:00')
+              const startD = new Date(entry.startDate + 'T12:00:00')
+              const canAddMore = (() => {
+                if (dateD >= todayD) {
+                  const ref = startD > todayD ? startD : todayD
+                  const futureOffset = Math.round((dateD.getTime() - ref.getTime()) / (7 * 24 * 3600 * 1000))
+                  const uncompleted = allTopics.filter(t => !t.completed)
+                  return futureOffset * perDay + count < uncompleted.length
+                } else {
+                  const weekOffset = Math.round((dateD.getTime() - startD.getTime()) / (7 * 24 * 3600 * 1000))
+                  return weekOffset * perDay + count < allTopics.length
+                }
+              })()
               return (
                 <div key={entry._id} className="rounded-xl overflow-hidden border"
                   style={{ borderColor: entry.areaColor + '40' }}>
@@ -642,6 +689,45 @@ export default function StudyCalendar({ subjectCards }: Props) {
 
       {loading && <p className="text-xs text-center text-gray-400 py-2">Carregando...</p>}
       {!loading && (viewMode === 'monthly' ? <MonthlyView /> : <WeeklyView />)}
+      {/* completion dates panel */}
+      {schedule.length > 0 && (() => {
+        const uniqueSubjects = [...new Map(schedule.map(e => [e.subjectId, e])).values()]
+        const items = uniqueSubjects.map(e => {
+          const topics = topicMap[e.subjectId] ?? []
+          const total = topics.length
+          const remaining = topics.filter(t => !t.completed).length
+          const completed = topics.filter(t => t.completed).length
+          const done = remaining === 0 && total > 0
+          const completionDate = computeCompletionDate(e.subjectId, topics, schedule)
+          return { entry: e, total, remaining, completed, done, completionDate }
+        }).filter(it => it.total > 0)
+        if (!items.length) return null
+        return (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <p className="text-sm font-semibold text-gray-700 mb-3">Previsão de conclusão</p>
+            <div className="space-y-2">
+              {items.map(({ entry: e, total, completed, done, completionDate }) => (
+                <div key={e.subjectId} className="flex items-center gap-3">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: e.areaColor }} />
+                  <span className="text-xs font-medium text-gray-700 flex-1 min-w-0 truncate">{e.subjectName}</span>
+                  <div className="text-right flex-shrink-0">
+                    {done ? (
+                      <span className="text-xs font-semibold text-green-600">Concluído</span>
+                    ) : completionDate ? (
+                      <span className="text-xs text-gray-500">
+                        {completionDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        <span className="ml-1 text-gray-400">({completed}/{total})</span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">—</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
