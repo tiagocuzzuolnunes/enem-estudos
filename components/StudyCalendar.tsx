@@ -46,24 +46,24 @@ function getWeekDates(date: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => { const d = new Date(sun); d.setDate(sun.getDate() + i); return d })
 }
 
+// Returns uncompleted topics from past sessions (the backlog)
+function getOverdueTopics(entry: ScheduleEntry, topics: TopicEntry[]): TopicEntry[] {
+  const today = new Date(); today.setHours(12, 0, 0, 0)
+  const start = new Date(entry.startDate + 'T12:00:00')
+  if (start >= today) return []
+  const perDay = entry.perDay ?? 1
+  const weeksSinceStart = Math.round((today.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+  return topics.slice(0, weeksSinceStart * perDay).filter(t => !t.completed)
+}
+
 function hasTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[]): boolean {
   if (!topics.length) return false
   const date  = new Date(dateStr + 'T12:00:00')
   const start = new Date(entry.startDate + 'T12:00:00')
   if (date < start) return false
-  const today = new Date(); today.setHours(12, 0, 0, 0)
   const perDay = entry.perDay ?? 1
-  if (date >= today) {
-    // Future/today: carry-forward — only show if there are uncompleted topics for this session
-    const ref = start > today ? start : today
-    const futureOffset = Math.round((date.getTime() - ref.getTime()) / (7 * 24 * 3600 * 1000))
-    const uncompleted = topics.filter(t => !t.completed)
-    return futureOffset * perDay < uncompleted.length
-  } else {
-    // Past: position-based historical view
-    const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
-    return weekOffset * perDay < topics.length
-  }
+  const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+  return weekOffset * perDay < topics.length
 }
 
 function getTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[], countOverride?: number): TopicEntry[] {
@@ -71,25 +71,12 @@ function getTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEn
   const date  = new Date(dateStr + 'T12:00:00')
   const start = new Date(entry.startDate + 'T12:00:00')
   if (date < start) return []
-  const today = new Date(); today.setHours(12, 0, 0, 0)
   const perDay = entry.perDay ?? 1
   const count  = countOverride ?? perDay
-  if (date >= today) {
-    // Future/today: distribute remaining uncompleted topics across future sessions
-    // Missed sessions automatically carry forward to the next appointment
-    const ref = start > today ? start : today
-    const futureOffset = Math.round((date.getTime() - ref.getTime()) / (7 * 24 * 3600 * 1000))
-    const uncompleted = topics.filter(t => !t.completed)
-    const sliceStart = futureOffset * perDay
-    if (sliceStart >= uncompleted.length) return []
-    return uncompleted.slice(sliceStart, sliceStart + count)
-  } else {
-    // Past: original position-based behavior
-    const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
-    const startIdx = weekOffset * perDay
-    if (startIdx >= topics.length) return []
-    return topics.slice(startIdx, startIdx + count)
-  }
+  const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+  const startIdx = weekOffset * perDay
+  if (startIdx >= topics.length) return []
+  return topics.slice(startIdx, startIdx + count)
 }
 
 interface PaceResult {
@@ -154,12 +141,12 @@ export default function StudyCalendar({ subjectCards }: Props) {
 
   const fetchSchedule = useCallback(async () => {
     const data: ScheduleEntry[] = await fetch('/api/weekly-schedule').then(r => r.json())
-    setSchedule(data)
     const unique = [...new Set(data.map(e => e.subjectId))]
-    const map: Record<string, TopicEntry[]> = {}
-    await Promise.all(unique.map(async sid => {
-      map[sid] = await fetch(`/api/topics?subjectId=${sid}`).then(r => r.json())
-    }))
+    const map: Record<string, TopicEntry[]> = unique.length
+      ? await fetch(`/api/topics/batch?subjectIds=${unique.join(',')}`).then(r => r.json())
+      : {}
+    // Set both at once so the calendar renders with complete data in a single pass
+    setSchedule(data)
     setTopicMap(map)
   }, [])
 
@@ -182,6 +169,13 @@ export default function StudyCalendar({ subjectCards }: Props) {
   }, [viewMode, currentDate])
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
+
+  // Auto-refresh when user returns to this tab
+  useEffect(() => {
+    const onVisible = () => { if (!document.hidden) { fetchSchedule(); fetchLogs() } }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [fetchSchedule, fetchLogs])
 
   // ── mutations ─────────────────────────────────────────────────────────
 
@@ -287,6 +281,22 @@ export default function StudyCalendar({ subjectCards }: Props) {
     const scheduledIds = new Set(daySched.map(e => e.subjectId))
     const extraLogs    = dayLogs.filter(l => !scheduledIds.has(l.subjectId))
 
+    // Overdue: all subjects with uncompleted topics from past sessions — shown only on today
+    const atrasadas = dateStr === todayStr
+      ? (() => {
+          const seen = new Set<string>()
+          const result: Array<{ entry: ScheduleEntry; topics: TopicEntry[] }> = []
+          for (const entry of schedule) {
+            if (seen.has(entry.subjectId)) continue
+            seen.add(entry.subjectId)
+            const allTopics = topicMap[entry.subjectId] ?? []
+            const overdue = getOverdueTopics(entry, allTopics)
+            if (overdue.length > 0) result.push({ entry, topics: overdue })
+          }
+          return result
+        })()
+      : []
+
     const toggleSubtopic = async (entry: ScheduleEntry, topic: TopicEntry) => {
       const newCompleted = !topic.completed
 
@@ -311,7 +321,134 @@ export default function StudyCalendar({ subjectCards }: Props) {
       } else if (!newCompleted && logBySubject.has(entry.subjectId)) {
         removeLog(logBySubject.get(entry.subjectId)!._id)
       }
+    }
 
+    type LinkField = 'videoLinks' | 'exerciseLinks' | 'additionalLinks'
+    const [addLinkForm, setAddLinkForm] = useState<{
+      topicId: string; subjectId: string
+      field: LinkField; title: string; url: string
+    } | null>(null)
+
+    const patchLinks = (subjectId: string, topicId: string, field: LinkField, newLinks: LinkEntry[]) => {
+      fetch(`/api/subtopics/${topicId}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: newLinks }),
+      })
+      setTopicMap(prev => ({
+        ...prev,
+        [subjectId]: prev[subjectId].map(t =>
+          t._id === topicId ? { ...t, [field]: newLinks } : t
+        ),
+      }))
+    }
+
+    const saveLink = () => {
+      if (!addLinkForm?.url.trim()) return
+      const topic = (topicMap[addLinkForm.subjectId] ?? []).find(t => t._id === addLinkForm.topicId)
+      if (!topic) return
+      const newLinks = [...topic[addLinkForm.field], { title: addLinkForm.title.trim() || addLinkForm.url.trim(), url: addLinkForm.url.trim() }]
+      patchLinks(addLinkForm.subjectId, addLinkForm.topicId, addLinkForm.field, newLinks)
+      setAddLinkForm(null)
+    }
+
+    const removeLink = (subjectId: string, topic: TopicEntry, field: LinkField, index: number) => {
+      patchLinks(subjectId, topic._id, field, topic[field].filter((_, i) => i !== index))
+    }
+
+    const LINK_GROUPS = [
+      { field: 'videoLinks'      as LinkField, icon: '▶', color: 'text-blue-500',   label: 'Vídeo'     },
+      { field: 'exerciseLinks'   as LinkField, icon: '📝', color: 'text-green-600',  label: 'Exercício' },
+      { field: 'additionalLinks' as LinkField, icon: '🔗', color: 'text-purple-600', label: 'Adicional' },
+    ]
+
+    const renderTopicItem = (entry: ScheduleEntry, topic: TopicEntry, idx: number) => {
+      const isEditing = addLinkForm?.topicId === topic._id
+      return (
+        <div key={topic._id}
+          className={`px-3 py-2 transition-colors ${idx > 0 ? 'border-t border-gray-50' : ''}`}
+          style={{ backgroundColor: topic.completed ? entry.areaColor + '10' : 'transparent' }}>
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={topic.completed}
+              onChange={() => toggleSubtopic(entry, topic)}
+              className="w-4 h-4 rounded flex-shrink-0 cursor-pointer mt-0.5"
+              style={{ accentColor: entry.areaColor }}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className={`text-xs leading-tight ${topic.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                  <span className="font-medium">{topic.topicName}</span> — {topic.name}
+                </p>
+                <button
+                  onClick={() => setAddLinkForm(isEditing ? null : { topicId: topic._id, subjectId: entry.subjectId, field: 'videoLinks', title: '', url: '' })}
+                  className="flex-shrink-0 text-xs text-gray-300 hover:text-blue-500 transition-colors leading-tight mt-0.5">
+                  {isEditing ? 'fechar' : '+ link'}
+                </button>
+              </div>
+              {!isEditing && !topic.completed && (() => {
+                const sections = LINK_GROUPS.filter(s => topic[s.field].length > 0)
+                if (!sections.length) return null
+                return (
+                  <div className="mt-1 space-y-0.5">
+                    {sections.flatMap(s =>
+                      topic[s.field].map((l, li) => (
+                        <a key={`${s.field}-${li}`} href={l.url} target="_blank" rel="noopener noreferrer"
+                          className={`flex items-center gap-1.5 text-xs ${s.color} hover:underline`}>
+                          <span className="flex-shrink-0">{s.icon}</span>
+                          <span className="truncate">{l.title || l.url}</span>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+
+          {isEditing && (
+            <div className="mt-2 ml-7 space-y-1.5">
+              {LINK_GROUPS.map(s => topic[s.field].length > 0 && (
+                <div key={s.field} className="space-y-0.5">
+                  {topic[s.field].map((l, li) => (
+                    <div key={li} className={`flex items-center gap-1.5 text-xs ${s.color} group`}>
+                      <span className="flex-shrink-0">{s.icon}</span>
+                      <a href={l.url} target="_blank" rel="noopener noreferrer"
+                        className="truncate hover:underline flex-1 min-w-0">{l.title || l.url}</a>
+                      <button onClick={() => removeLink(entry.subjectId, topic, s.field, li)}
+                        className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 ml-1 transition-all">×</button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <div className="flex flex-col gap-1 p-2 rounded-lg border border-dashed border-blue-200 bg-blue-50">
+                <div className="flex gap-1">
+                  <select value={addLinkForm.field}
+                    onChange={e => setAddLinkForm(prev => prev ? { ...prev, field: e.target.value as LinkField } : null)}
+                    className="text-xs border border-gray-200 rounded px-1.5 py-1 bg-white flex-shrink-0">
+                    {LINK_GROUPS.map(s => <option key={s.field} value={s.field}>{s.icon} {s.label}</option>)}
+                  </select>
+                  <input type="text" placeholder="Título (opcional)"
+                    value={addLinkForm.title}
+                    onChange={e => setAddLinkForm(prev => prev ? { ...prev, title: e.target.value } : null)}
+                    className="text-xs border border-gray-200 rounded px-2 py-1 flex-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white" />
+                </div>
+                <div className="flex gap-1">
+                  <input type="url" placeholder="URL" autoFocus
+                    value={addLinkForm.url}
+                    onChange={e => setAddLinkForm(prev => prev ? { ...prev, url: e.target.value } : null)}
+                    onKeyDown={e => e.key === 'Enter' && saveLink()}
+                    className="text-xs border border-gray-200 rounded px-2 py-1 flex-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white" />
+                  <button onClick={saveLink} disabled={!addLinkForm.url.trim()}
+                    className="text-xs px-2.5 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-40 transition-colors">
+                    OK
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )
     }
 
     return (
@@ -331,15 +468,8 @@ export default function StudyCalendar({ subjectCards }: Props) {
               const dateD  = new Date(dateStr + 'T12:00:00')
               const startD = new Date(entry.startDate + 'T12:00:00')
               const canAddMore = (() => {
-                if (dateD >= todayD) {
-                  const ref = startD > todayD ? startD : todayD
-                  const futureOffset = Math.round((dateD.getTime() - ref.getTime()) / (7 * 24 * 3600 * 1000))
-                  const uncompleted = allTopics.filter(t => !t.completed)
-                  return futureOffset * perDay + count < uncompleted.length
-                } else {
-                  const weekOffset = Math.round((dateD.getTime() - startD.getTime()) / (7 * 24 * 3600 * 1000))
-                  return weekOffset * perDay + count < allTopics.length
-                }
+                const weekOffset = Math.round((dateD.getTime() - startD.getTime()) / (7 * 24 * 3600 * 1000))
+                return weekOffset * perDay + count < allTopics.length
               })()
               return (
                 <div key={entry._id} className="rounded-xl overflow-hidden border"
@@ -356,49 +486,28 @@ export default function StudyCalendar({ subjectCards }: Props) {
                       </button>
                     )}
                   </div>
-                  {topics.map((topic, idx) => (
-                    <label key={topic._id}
-                      className={`flex items-start gap-3 px-3 py-2 cursor-pointer transition-colors ${idx > 0 ? 'border-t border-gray-50' : ''}`}
-                      style={{ backgroundColor: topic.completed ? entry.areaColor + '10' : 'transparent' }}>
-                      <input
-                        type="checkbox"
-                        checked={topic.completed}
-                        onChange={() => toggleSubtopic(entry, topic)}
-                        className="w-4 h-4 rounded flex-shrink-0 cursor-pointer mt-0.5"
-                        style={{ accentColor: entry.areaColor }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-xs leading-tight ${topic.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                          <span className="font-medium">{topic.topicName}</span> — {topic.name}
-                        </p>
-                        {!topic.completed && (() => {
-                          const sections = [
-                            { links: topic.videoLinks,      icon: '▶', color: 'text-blue-500'   },
-                            { links: topic.exerciseLinks,   icon: '📝', color: 'text-green-600'  },
-                            { links: topic.additionalLinks, icon: '🔗', color: 'text-purple-600' },
-                          ].filter(s => s.links.length > 0)
-                          if (!sections.length) return null
-                          return (
-                            <div className="mt-1 space-y-0.5">
-                              {sections.flatMap((s, si) =>
-                                s.links.map((l, li) => (
-                                  <a key={`${si}-${li}`} href={l.url} target="_blank" rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    className={`flex items-center gap-1.5 text-xs ${s.color} hover:underline`}>
-                                    <span className="flex-shrink-0">{s.icon}</span>
-                                    <span className="truncate">{l.title || l.url}</span>
-                                  </a>
-                                ))
-                              )}
-                            </div>
-                          )
-                        })()}
-                      </div>
-                    </label>
-                  ))}
+                  {topics.map((topic, idx) => renderTopicItem(entry, topic, idx))}
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {atrasadas.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-orange-600 flex items-center gap-1.5">
+              <span>⚠</span> Matérias atrasadas
+            </p>
+            {atrasadas.map(({ entry, topics: overdueTopics }) => (
+              <div key={entry.subjectId} className="rounded-xl overflow-hidden border border-orange-200">
+                <div className="px-3 py-1.5 text-xs font-bold flex items-center gap-2 bg-orange-50 text-orange-700">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.areaColor }} />
+                  {entry.subjectName}
+                  <span className="ml-auto font-normal opacity-70">{overdueTopics.length} pendente{overdueTopics.length > 1 ? 's' : ''}</span>
+                </div>
+                {overdueTopics.map((topic, idx) => renderTopicItem(entry, topic, idx))}
+              </div>
+            ))}
           </div>
         )}
 

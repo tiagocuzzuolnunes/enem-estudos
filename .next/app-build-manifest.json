@@ -31,15 +31,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/topics/route.js"
     ],
-    "/area/[slug]/page": [
+    "/api/topics/batch/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/area/[slug]/page.js"
+      "static/chunks/app/api/topics/batch/route.js"
     ],
     "/api/subtopics/[id]/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/subtopics/[id]/route.js"
+    ],
+    "/area/[slug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/area/[slug]/page.js"
     ],
     "/admin/page": [
       "static/chunks/webpack.js",
@@ -65,6 +70,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/admin/subtopics/[id]/route.js"
+    ],
+    "/api/admin/topics/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/topics/route.js"
+    ],
+    "/api/admin/topics/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/topics/[id]/route.js"
     ]
   }
 }

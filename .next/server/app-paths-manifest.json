@@ -1,9 +1,12 @@
 {
   "/api/weekly-schedule/route": "app/api/weekly-schedule/route.js",
+  "/api/topics/batch/route": "app/api/topics/batch/route.js",
   "/api/study-log/route": "app/api/study-log/route.js",
+  "/api/admin/topics/route": "app/api/admin/topics/route.js",
+  "/api/admin/topics/[id]/route": "app/api/admin/topics/[id]/route.js",
   "/api/subtopics/[id]/route": "app/api/subtopics/[id]/route.js",
-  "/api/topics/route": "app/api/topics/route.js",
+  "/api/admin/subtopics/route": "app/api/admin/subtopics/route.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/area/[slug]/page": "app/area/[slug]/page.js"
+  "/area/[slug]/page": "app/area/[slug]/page.js",
+  "/admin/page": "app/admin/page.js"
 }
