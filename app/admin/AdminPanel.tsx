@@ -434,8 +434,19 @@ export default function AdminPanel() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div>
-      {/* Reset button */}
-      <div className="flex justify-end mb-4">
+      {/* Toolbar */}
+      <div className="flex justify-end gap-2 mb-4">
+        <button
+          onClick={() => {
+            const a = document.createElement('a')
+            a.href = '/api/admin/export'
+            a.download = ''
+            a.click()
+          }}
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+        >
+          Exportar JSON
+        </button>
         <button
           onClick={resetPlan}
           className="text-xs px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors font-medium"
