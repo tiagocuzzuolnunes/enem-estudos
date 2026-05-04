@@ -52,7 +52,7 @@ function getOverdueTopics(entry: ScheduleEntry, topics: TopicEntry[]): TopicEntr
   const start = new Date(entry.startDate + 'T12:00:00')
   if (start >= today) return []
   const perDay = entry.perDay ?? 1
-  const weeksSinceStart = Math.round((today.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+  const weeksSinceStart = Math.ceil((today.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
   return topics.slice(0, weeksSinceStart * perDay).filter(t => !t.completed)
 }
 
