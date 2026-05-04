@@ -421,12 +421,29 @@ export default function AdminPanel() {
     if (e.key === 'Escape') { e.preventDefault(); setAdding(null); setAddValue('') }
   }
 
+  // ── Reset plan ────────────────────────────────────────────────────────────
+  async function resetPlan() {
+    if (!confirm('Isso vai desmarcar todos os subtópicos concluídos, apagar o histórico de estudos e reiniciar as datas do calendário. Tem certeza?')) return
+    await fetch('/api/admin/reset', { method: 'POST' })
+    window.location.reload()
+  }
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const selectedArea = areas.find((a) => a.slug === selectedSlug)
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div>
+      {/* Reset button */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={resetPlan}
+          className="text-xs px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors font-medium"
+        >
+          Reiniciar plano de estudos
+        </button>
+      </div>
+
       {/* Area tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 border-b border-gray-200">
         {areas.map((area) => {
