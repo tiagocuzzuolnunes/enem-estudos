@@ -46,35 +46,73 @@ function getWeekDates(date: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => { const d = new Date(sun); d.setDate(sun.getDate() + i); return d })
 }
 
-// Returns uncompleted topics from past sessions (the backlog)
-function getOverdueTopics(entry: ScheduleEntry, topics: TopicEntry[]): TopicEntry[] {
-  const today = new Date(); today.setHours(12, 0, 0, 0)
-  const start = new Date(entry.startDate + 'T12:00:00')
-  if (start >= today) return []
-  const perDay = entry.perDay ?? 1
-  const weeksSinceStart = Math.ceil((today.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
-  return topics.slice(0, weeksSinceStart * perDay).filter(t => !t.completed)
+// All entries for a subject sorted by dayOfWeek — determines stable slot order within the week
+function sortedSubjectEntries(subjectId: string, schedule: ScheduleEntry[]): ScheduleEntry[] {
+  return schedule.filter(e => e.subjectId === subjectId).sort((a, b) => a.dayOfWeek - b.dayOfWeek)
 }
 
-function hasTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[]): boolean {
+// Total subtopics covered per week across all entries for a subject
+function subjectWeeklyRate(subjectId: string, schedule: ScheduleEntry[]): number {
+  return schedule.filter(e => e.subjectId === subjectId).reduce((s, e) => s + (e.perDay ?? 1), 0)
+}
+
+// Topic-index offset within a week for a given entry (sum of perDay of earlier-in-week entries)
+function entrySlotOffset(entry: ScheduleEntry, schedule: ScheduleEntry[]): number {
+  let offset = 0
+  for (const e of sortedSubjectEntries(entry.subjectId, schedule)) {
+    if (e._id === entry._id) break
+    offset += e.perDay ?? 1
+  }
+  return offset
+}
+
+// Returns uncompleted topics from past sessions (the backlog), across all entries for the subject
+function getOverdueTopics(subjectId: string, schedule: ScheduleEntry[], topics: TopicEntry[]): TopicEntry[] {
+  const entries = sortedSubjectEntries(subjectId, schedule)
+  if (!entries.length || !topics.length) return []
+  const today = new Date(); today.setHours(12, 0, 0, 0)
+  const rate = subjectWeeklyRate(subjectId, schedule)
+  const pastIndices = new Set<number>()
+  let slotOff = 0
+  for (const entry of entries) {
+    const start  = new Date(entry.startDate + 'T12:00:00')
+    const perDay = entry.perDay ?? 1
+    if (start < today) {
+      const weeksPast = Math.ceil((today.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
+      for (let week = 0; week < weeksPast; week++) {
+        for (let i = 0; i < perDay; i++) {
+          const idx = week * rate + slotOff + i
+          if (idx < topics.length) pastIndices.add(idx)
+        }
+      }
+    }
+    slotOff += perDay
+  }
+  return topics.filter((t, idx) => pastIndices.has(idx) && !t.completed)
+}
+
+function hasTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[], schedule: ScheduleEntry[]): boolean {
   if (!topics.length) return false
   const date  = new Date(dateStr + 'T12:00:00')
   const start = new Date(entry.startDate + 'T12:00:00')
   if (date < start) return false
-  const perDay = entry.perDay ?? 1
+  const rate       = subjectWeeklyRate(entry.subjectId, schedule)
   const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
-  return weekOffset * perDay < topics.length
+  const slotOff    = entrySlotOffset(entry, schedule)
+  return weekOffset * rate + slotOff < topics.length
 }
 
-function getTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[], countOverride?: number): TopicEntry[] {
+function getTopicsForDate(entry: ScheduleEntry, dateStr: string, topics: TopicEntry[], schedule: ScheduleEntry[], countOverride?: number): TopicEntry[] {
   if (!topics.length) return []
   const date  = new Date(dateStr + 'T12:00:00')
   const start = new Date(entry.startDate + 'T12:00:00')
   if (date < start) return []
-  const perDay = entry.perDay ?? 1
-  const count  = countOverride ?? perDay
+  const rate       = subjectWeeklyRate(entry.subjectId, schedule)
+  const perDay     = entry.perDay ?? 1
+  const count      = countOverride ?? perDay
   const weekOffset = Math.round((date.getTime() - start.getTime()) / (7 * 24 * 3600 * 1000))
-  const startIdx = weekOffset * perDay
+  const slotOff    = entrySlotOffset(entry, schedule)
+  const startIdx   = weekOffset * rate + slotOff
   if (startIdx >= topics.length) return []
   return topics.slice(startIdx, startIdx + count)
 }
@@ -277,7 +315,7 @@ export default function StudyCalendar({ subjectCards }: Props) {
     const logBySubject = new Map(dayLogs.map(l => [l.subjectId, l]))
     const date         = new Date(dateStr + 'T12:00:00')
     const dow          = date.getDay()
-    const daySched     = (scheduleByDow[dow] ?? []).filter(e => hasTopicsForDate(e, dateStr, topicMap[e.subjectId] ?? []))
+    const daySched     = (scheduleByDow[dow] ?? []).filter(e => hasTopicsForDate(e, dateStr, topicMap[e.subjectId] ?? [], schedule))
     const scheduledIds = new Set(daySched.map(e => e.subjectId))
     const extraLogs    = dayLogs.filter(l => !scheduledIds.has(l.subjectId))
 
@@ -290,7 +328,7 @@ export default function StudyCalendar({ subjectCards }: Props) {
             if (seen.has(entry.subjectId)) continue
             seen.add(entry.subjectId)
             const allTopics = topicMap[entry.subjectId] ?? []
-            const overdue = getOverdueTopics(entry, allTopics)
+            const overdue = getOverdueTopics(entry.subjectId, schedule, allTopics)
             if (overdue.length > 0) result.push({ entry, topics: overdue })
           }
           return result
@@ -463,13 +501,12 @@ export default function StudyCalendar({ subjectCards }: Props) {
               const allTopics  = topicMap[entry.subjectId] ?? []
               const perDay     = entry.perDay ?? 1
               const count      = perDay + (extraCount[entry._id] ?? 0)
-              const topics     = getTopicsForDate(entry, dateStr, allTopics, count)
-              const todayD = new Date(); todayD.setHours(12, 0, 0, 0)
-              const dateD  = new Date(dateStr + 'T12:00:00')
-              const startD = new Date(entry.startDate + 'T12:00:00')
+              const topics     = getTopicsForDate(entry, dateStr, allTopics, schedule, count)
               const canAddMore = (() => {
-                const weekOffset = Math.round((dateD.getTime() - startD.getTime()) / (7 * 24 * 3600 * 1000))
-                return weekOffset * perDay + count < allTopics.length
+                const rate       = subjectWeeklyRate(entry.subjectId, schedule)
+                const slotOff    = entrySlotOffset(entry, schedule)
+                const weekOffset = Math.round((new Date(dateStr + 'T12:00:00').getTime() - new Date(entry.startDate + 'T12:00:00').getTime()) / (7 * 24 * 3600 * 1000))
+                return weekOffset * rate + slotOff + count < allTopics.length
               })()
               return (
                 <div key={entry._id} className="rounded-xl overflow-hidden border"
@@ -554,7 +591,7 @@ export default function StudyCalendar({ subjectCards }: Props) {
               const dateStr = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
               const dow     = (firstDow + i) % 7
               const dayLogs  = logsByDate[dateStr] ?? []
-              const daySched = (scheduleByDow[dow] ?? []).filter(e => hasTopicsForDate(e, dateStr, topicMap[e.subjectId] ?? []))
+              const daySched = (scheduleByDow[dow] ?? []).filter(e => hasTopicsForDate(e, dateStr, topicMap[e.subjectId] ?? [], schedule))
               const isToday  = dateStr === todayStr
               const isSel    = dateStr === selectedDate
               const allDots  = [
@@ -599,7 +636,7 @@ export default function StudyCalendar({ subjectCards }: Props) {
               const isToday  = dateStr === todayStr
               const isSel    = dateStr === selectedDate
               const dayLogs  = logsByDate[dateStr] ?? []
-              const daySched = (scheduleByDow[dow] ?? []).filter(e => hasTopicsForDate(e, dateStr, topicMap[e.subjectId] ?? []))
+              const daySched = (scheduleByDow[dow] ?? []).filter(e => hasTopicsForDate(e, dateStr, topicMap[e.subjectId] ?? [], schedule))
 
               return (
                 <div key={dateStr}
@@ -615,7 +652,7 @@ export default function StudyCalendar({ subjectCards }: Props) {
 
                   <div className="space-y-1.5">
                     {daySched.map(entry => {
-                      const topics = getTopicsForDate(entry, dateStr, topicMap[entry.subjectId] ?? [])
+                      const topics = getTopicsForDate(entry, dateStr, topicMap[entry.subjectId] ?? [], schedule)
                       const linkCount = topics.reduce((sum, t) =>
                         sum + (t.videoLinks?.length ?? 0) + (t.exerciseLinks?.length ?? 0) + (t.additionalLinks?.length ?? 0), 0)
                       return (
